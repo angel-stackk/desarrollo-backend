@@ -1,7 +1,7 @@
 ﻿// src/components/users/users_routes.ts
 import { Express } from 'express';
 import { body } from 'express-validator';
-import { UserController, forgotPassword } from './users_controller';
+import { UserController, forgotPassword, resetPassword, changePassword } from './users_controller';
 import { validate } from '../../utils/validator';
 import { authorize } from '../../utils/auth_util';
 
@@ -33,5 +33,7 @@ export class UserRoutes {
 
     app.route('/api/login').post(controller.login);
     app.route('/api/forgot-password').post(forgotPassword);
+    app.route('/api/reset-password').post(resetPassword);
+    app.route('/api/change-password').post(authorize, changePassword);
   }
 }

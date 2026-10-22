@@ -150,4 +150,55 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
   } else {
     res.status(500).json({ statusCode: 500, status: 'error', message: 'Fallo al enviar el correo de recuperación' });
   }
+
+}
+
+export async function resetPassword(req: Request, res: Response): Promise<void> {
+  const { token, newPassword } = req.body;
+  try {
+    const decoded = jwt.verify(token, SERVER_CONST.JWTSECRET) as any;
+    const user = await UsersUtil.getUserByEmail(decoded.email);
+
+    if (!user) {
+      res.status(404).json({ statusCode: 404, status: 'error', message: 'Usuario no encontrado' });
+      return;
+    }
+
+    const service = new UsersService();
+    const hashedPassword = await encryptString(newPassword);
+    await service.update(user.user_id, { password: hashedPassword });
+
+    res.status(200).json({ statusCode: 200, status: 'success', message: 'Contraseña restablecida exitosamente' });
+  } catch (error) {
+    res.status(400).json({ statusCode: 400, status: 'error', message: 'Token inválido o expirado' });
+  }
+}
+
+export async function changePassword(req: Request, res: Response): Promise<void> {
+  const { oldPassword, newPassword } = req.body;
+  const userId = req.user?.user_id;
+
+  if (!userId) {
+    res.status(401).json({ statusCode: 401, status: 'error', message: 'No autorizado' });
+    return;
+  }
+
+  const service = new UsersService();
+  const result = await service.findOne(userId);
+  if (result.statusCode !== 200 || !result.data) {
+    res.status(404).json({ statusCode: 404, status: 'error', message: 'Usuario no encontrado' });
+    return;
+  }
+
+  const user = result.data as Users;
+  const isMatch = await bcryptCompare(oldPassword, user.password);
+  if (!isMatch) {
+    res.status(400).json({ statusCode: 400, status: 'error', message: 'La contraseña actual es incorrecta' });
+    return;
+  }
+
+  const hashedPassword = await encryptString(newPassword);
+  await service.update(userId, { password: hashedPassword });
+
+  res.status(200).json({ statusCode: 200, status: 'success', message: 'Contraseña actualizada correctamente' });
 }
