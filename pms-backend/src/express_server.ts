@@ -7,11 +7,13 @@ import { DatabaseUtil } from './utils/db';
 
 export class ExpressServer {
   public static server: any = null;
+  public app: Express;
   public server_config: IServerConfig = config;
 
   constructor() {
     const port = this.server_config.port ?? 3000;
     const app: Express = express();
+    this.app = app;
 
     app.use(bodyParser.urlencoded({ extended: false }));
     app.use(bodyParser.json());

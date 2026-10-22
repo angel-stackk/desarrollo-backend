@@ -7,10 +7,11 @@
     "start": "ts-node src/main.ts",
     "dev": "nodemon src/main.ts",
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "mocha --require ts-node/register --require dotenv/config \"tests/**/*.test.ts\" --timeout 10000 --exit",
+    "test:coverage": "nyc npm test"
   },
   "dependencies": {
-    "@types/bull": "^3.15.9",
     "bcrypt": "^6.0.0",
     "body-parser": "^1.20.2",
     "bull": "^4.16.5",
@@ -29,13 +30,23 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
+    "@types/bull": "^3.15.9",
+    "@types/chai": "^4.3.20",
     "@types/compression": "^1.7.5",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20.12.12",
     "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.11.6",
+    "@types/sinon": "^22.0.1",
+    "@types/supertest": "^7.2.1",
+    "chai": "^4.5.0",
+    "mocha": "^10.8.2",
     "nodemon": "3.1.0",
+    "nyc": "^18.0.0",
+    "sinon": "^22.1.0",
+    "supertest": "^7.3.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   }
