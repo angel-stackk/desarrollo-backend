@@ -4,7 +4,7 @@ import Queue from 'bull';
 export class NotificationUtil {
   private static transporter: nodemailer.Transporter | null = null;
   private static emailQueue = new Queue('emailQueue', {
-    redis: { host: '127.0.0.1', port: 6379, enableOfflineQueue: false, maxRetriesPerRequest: 1 }
+    redis: { host: '127.0.0.1', port: 6379, maxRetriesPerRequest: 1 }
   });
 
   constructor(config: any) {
