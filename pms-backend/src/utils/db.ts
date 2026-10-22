@@ -25,13 +25,13 @@ export class DatabaseUtil {
 
     DatabaseUtil.dataSource = new DataSource({
       type: 'postgres',
-      host: db_config.host,
-      port: db_config.port,
-      username: db_config.username,
+      host: process.env.DB_HOST || db_config.host,
+      port: Number(process.env.DB_PORT) || db_config.port,
+      username: process.env.DB_USERNAME || db_config.username,
       password: process.env.DB_PASSWORD || db_config.password,
-      database: db_config.dbname,
+      database: process.env.DB_NAME || db_config.dbname,
       entities: [Roles, Users, Projects, Tasks, Comments],
-      synchronize: true, // Sincroniza esquemas físicamente en PostgreSQL
+      synchronize: process.env.DB_SYNCHRONIZE !== 'false',
       logging: false
     });
 
