@@ -13,5 +13,8 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*", "server_config.json"]
+  "include": ["src/**/*", "server_config.json"],
+  "ts-node": {
+    "files": true
+  }
 }

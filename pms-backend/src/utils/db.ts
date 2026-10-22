@@ -1,4 +1,4 @@
-import { DataSource } from 'typeorm';
+import { DataSource, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
 import { IServerConfig } from './config';
 import config from '../../server_config.json';
 import { Roles } from '../components/roles/roles_entity';
@@ -9,6 +9,8 @@ import { Comments } from '../components/comments/comments_entity';
 
 export class DatabaseUtil {
   public server_config: IServerConfig = config;
+  private static dataSource: DataSource;
+  private static initializePromise: Promise<DataSource> | null = null;
 
   constructor() {
     this.connectDatabase();
@@ -17,22 +19,44 @@ export class DatabaseUtil {
   private connectDatabase(): void {
     const db_config = this.server_config.db_config;
 
-    const AppDataSource = new DataSource({
+    if (DatabaseUtil.initializePromise) {
+      return;
+    }
+
+    DatabaseUtil.dataSource = new DataSource({
       type: 'postgres',
       host: db_config.host,
       port: db_config.port,
       username: db_config.username,
-      password: db_config.password,
+      password: process.env.DB_PASSWORD || db_config.password,
       database: db_config.dbname,
       entities: [Roles, Users, Projects, Tasks, Comments],
       synchronize: true, // Sincroniza esquemas físicamente en PostgreSQL
       logging: false
     });
 
-    AppDataSource.initialize()
+    DatabaseUtil.initializePromise = DatabaseUtil.dataSource.initialize();
+
+    DatabaseUtil.initializePromise
       .then(() => {
         console.log('Connected to the database with all entities synchronized');
       })
       .catch((error) => console.log('Error connecting to database:', error));
+  }
+
+  public getRepository<Entity extends ObjectLiteral>(entity: EntityTarget<Entity>): Repository<Entity> {
+    return DatabaseUtil.dataSource.getRepository(entity);
+  }
+
+  public static async waitForConnection(): Promise<boolean> {
+    if (!DatabaseUtil.initializePromise) {
+      return false;
+    }
+    try {
+      await DatabaseUtil.initializePromise;
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 }
