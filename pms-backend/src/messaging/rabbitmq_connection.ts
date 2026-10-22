@@ -15,7 +15,7 @@ export class RabbitMQConnection {
     return RabbitMQConnection.instance;
   }
 
-  public async connect(url: string = 'amqp://localhost:5672'): Promise<Channel> {
+  public async connect(url: string = process.env.RABBITMQ_URL || 'amqp://localhost:5672'): Promise<Channel> {
     if (this.channel) return this.channel;
 
     try {

@@ -11,7 +11,7 @@ export class ExpressServer {
   public server_config: IServerConfig = config;
 
   constructor() {
-    const port = this.server_config.port ?? 3000;
+    const port = Number(process.env.PORT) || this.server_config.port || 3000;
     const app: Express = express();
     this.app = app;
 

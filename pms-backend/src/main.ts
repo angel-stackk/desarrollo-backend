@@ -32,10 +32,10 @@ if (cluster.isPrimary) {
       process.exit(0);
     });
   } else {
-    const numCPUs = os.cpus().length;
-    console.log(`Master process ${process.pid} is running. Forking for ${numCPUs} CPUs...`);
+    const numWorkers = Number(process.env.CLUSTER_WORKERS) || os.availableParallelism();
+    console.log(`Master process ${process.pid} is running. Forking ${numWorkers} workers...`);
 
-    for (let i = 0; i < numCPUs; i++) {
+    for (let i = 0; i < numWorkers; i++) {
       cluster.fork();
     }
 
