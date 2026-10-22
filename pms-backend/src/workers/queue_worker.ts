@@ -3,7 +3,7 @@ import { NotificationUtil } from '../utils/notification_util';
 
 export class QueueWorker {
   private static emailQueue = new Queue('emailQueue', {
-    redis: { host: '127.0.0.1', port: 6379, enableOfflineQueue: false, maxRetriesPerRequest: 1 }
+    redis: { host: '127.0.0.1', port: 6379, maxRetriesPerRequest: 1 }
   });
 
   constructor() {
@@ -30,7 +30,7 @@ export class QueueWorker {
 
 export class QueueWorkerWithFailures {
   private static emailQueue = new Queue('emailQueue', {
-    redis: { host: '127.0.0.1', port: 6379, enableOfflineQueue: false, maxRetriesPerRequest: 1 }
+    redis: { host: '127.0.0.1', port: 6379, maxRetriesPerRequest: 1 }
   });
   private static MAX_ATTEMPTS = 3;
 
