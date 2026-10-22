@@ -1,0 +1,15 @@
+node_modules
+dist
+build
+binaries
+coverage
+.nyc_output
+_cap3_referencia
+docs-capitulos
+.git
+.gitignore
+*.log
+.env
+.env.*
+!.env.example
+deploy/certs
