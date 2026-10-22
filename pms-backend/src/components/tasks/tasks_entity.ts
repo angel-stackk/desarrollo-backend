@@ -19,7 +19,7 @@ export class Tasks {
   @PrimaryGeneratedColumn('uuid')
   task_id!: string;
 
-  @Column({ length: 30, nullable: false, unique: true })
+  @Column({ length: 100, nullable: false })
   name!: string;
 
   @Column({ length: 500, nullable: true })
@@ -27,11 +27,11 @@ export class Tasks {
 
   @ManyToOne(() => Projects)
   @JoinColumn({ name: 'project_id' })
-  project_id!: string;
+  project!: Projects;
 
   @ManyToOne(() => Users)
   @JoinColumn({ name: 'user_id' })
-  user_id!: string;
+  assignedUser!: Users;
 
   @Column({ type: 'timestamp', nullable: true })
   estimated_start_time!: Date;

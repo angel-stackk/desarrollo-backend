@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from 'express';
+import express, { Express, Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
 import { IServerConfig } from './utils/config';
 import config from '../server_config.json';
@@ -25,6 +25,17 @@ export class ExpressServer {
     if (routes) {
       console.log('Server Routes started for server');
     }
+
+    // Manejo centralizado de errores
+    app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+      console.error(`[ERROR CRÍTICO] ${err.stack}`);
+      const statusCode = err.statusCode || 500;
+      res.status(statusCode).json({
+        statusCode,
+        status: 'error',
+        message: err.message || 'Error Interno del Servidor'
+      });
+    });
 
     // Conectar base de datos
     new DatabaseUtil();
