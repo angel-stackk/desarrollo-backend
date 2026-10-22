@@ -1,5 +1,7 @@
 node_modules/
 dist/
+build/
+binaries/
 coverage/
 .nyc_output/
 .env

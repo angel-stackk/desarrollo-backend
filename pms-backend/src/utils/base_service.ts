@@ -10,9 +10,11 @@ export interface IApiResponse<T> {
 
 export class BaseService<T extends ObjectLiteral> {
   protected repository: Repository<T>;
+  protected idColumn: string;
 
-  constructor(repository: Repository<T>) {
+  constructor(repository: Repository<T>, idColumn: string = 'id') {
     this.repository = repository;
+    this.idColumn = idColumn;
   }
 
   public async create(data: any): Promise<IApiResponse<T>> {
@@ -39,7 +41,7 @@ export class BaseService<T extends ObjectLiteral> {
 
   public async findOne(id: string): Promise<IApiResponse<T>> {
     try {
-      const result = await this.repository.findOne({ where: { id } as any });
+      const result = await this.repository.findOne({ where: { [this.idColumn]: id } as any });
       if (!result) {
         return { statusCode: 404, status: 'error', message: 'Recurso no encontrado' };
       }
@@ -51,7 +53,7 @@ export class BaseService<T extends ObjectLiteral> {
 
   public async update(id: string, data: any): Promise<IApiResponse<T>> {
     try {
-      const existing = await this.repository.findOne({ where: { id } as any });
+      const existing = await this.repository.findOne({ where: { [this.idColumn]: id } as any });
       if (!existing) {
         return { statusCode: 404, status: 'error', message: 'Recurso no encontrado para actualizar' };
       }

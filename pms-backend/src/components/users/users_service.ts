@@ -7,6 +7,6 @@ export class UsersService extends BaseService<Users> {
   constructor() {
     const dbUtil = new DatabaseUtil();
     const repository: Repository<Users> = dbUtil.getRepository(Users);
-    super(repository);
+    super(repository, 'user_id');
   }
 }

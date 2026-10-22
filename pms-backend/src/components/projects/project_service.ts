@@ -11,7 +11,7 @@ export class ProjectService extends BaseService<Projects> {
   constructor() {
     const dbUtil = new DatabaseUtil();
     const repository = dbUtil.getRepository(Projects);
-    super(repository);
+    super(repository, 'project_id');
     this.projectRepo = repository;
   }
 

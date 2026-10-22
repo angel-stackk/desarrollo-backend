@@ -39,16 +39,18 @@ export class TaskController {
       const taskService = new TaskService();
       const newTask = await taskService.createTask(taskData, project_id, user_id);
 
-      // Recuperar los miembros del proyecto para notificar
-      const memberEmails = await ProjectsUtil.getProjectMemberEmails(project_id);
-
-      // Encolar notificaciones asíncronas para cada miembro
-      for (const email of memberEmails) {
-        await NotificationUtil.enqueueEmail(
-          email,
-          `Nueva Tarea Creada: ${newTask.name}`,
-          `<p>Hola, se ha creado la tarea <b>${newTask.name}</b> en tu proyecto.</p>`
-        );
+      // Notificaciones (mejor esfuerzo): si la cola falla, no se rompe la creación de la tarea
+      try {
+        const memberEmails = await ProjectsUtil.getProjectMemberEmails(project_id);
+        for (const email of memberEmails) {
+          await NotificationUtil.enqueueEmail(
+            email,
+            `Nueva Tarea Creada: ${newTask.name}`,
+            `<p>Hola, se ha creado la tarea <b>${newTask.name}</b> en tu proyecto.</p>`
+          );
+        }
+      } catch (error: any) {
+        console.error(`[WARN] No se pudieron encolar las notificaciones: ${error.message}`);
       }
 
       res.status(201).json({

@@ -1,7 +1,7 @@
 import * as redis from 'redis';
 
 export class CacheUtil {
-  private static client = redis.createClient();
+  private static client = redis.createClient({ disableOfflineQueue: true });
 
   constructor() {
     CacheUtil.client.on('error', (err) => console.error('Error de Cliente Redis:', err));

@@ -11,7 +11,7 @@ export class TaskService extends BaseService<Tasks> {
   constructor() {
     const dbUtil = new DatabaseUtil();
     const repository = dbUtil.getRepository(Tasks);
-    super(repository);
+    super(repository, 'task_id');
     this.taskRepo = repository;
   }
 

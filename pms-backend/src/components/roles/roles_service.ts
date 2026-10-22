@@ -7,6 +7,6 @@ export class RolesService extends BaseService<Roles> {
   constructor() {
     const dbUtil = new DatabaseUtil();
     const repository: Repository<Roles> = dbUtil.getRepository(Roles);
-    super(repository);
+    super(repository, 'role_id');
   }
 }

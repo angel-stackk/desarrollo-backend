@@ -3,7 +3,9 @@ import Queue from 'bull';
 
 export class NotificationUtil {
   private static transporter: nodemailer.Transporter | null = null;
-  private static emailQueue = new Queue('emailQueue', 'redis://127.0.0.1:6379');
+  private static emailQueue = new Queue('emailQueue', {
+    redis: { host: '127.0.0.1', port: 6379, enableOfflineQueue: false, maxRetriesPerRequest: 1 }
+  });
 
   constructor(config: any) {
     NotificationUtil.transporter = nodemailer.createTransport({

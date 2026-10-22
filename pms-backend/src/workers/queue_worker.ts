@@ -2,7 +2,9 @@ import Queue from 'bull';
 import { NotificationUtil } from '../utils/notification_util';
 
 export class QueueWorker {
-  private static emailQueue = new Queue('emailQueue', 'redis://127.0.0.1:6379');
+  private static emailQueue = new Queue('emailQueue', {
+    redis: { host: '127.0.0.1', port: 6379, enableOfflineQueue: false, maxRetriesPerRequest: 1 }
+  });
 
   constructor() {
     console.log('[OK] Inicializando QueueWorker...');
@@ -27,7 +29,9 @@ export class QueueWorker {
 }
 
 export class QueueWorkerWithFailures {
-  private static emailQueue = new Queue('emailQueue', 'redis://127.0.0.1:6379');
+  private static emailQueue = new Queue('emailQueue', {
+    redis: { host: '127.0.0.1', port: 6379, enableOfflineQueue: false, maxRetriesPerRequest: 1 }
+  });
   private static MAX_ATTEMPTS = 3;
 
   public beginProcessing(): void {
