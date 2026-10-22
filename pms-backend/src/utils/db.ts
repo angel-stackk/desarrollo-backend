@@ -48,6 +48,10 @@ export class DatabaseUtil {
     return DatabaseUtil.dataSource.getRepository(entity);
   }
 
+  public getDataSource(): DataSource {
+    return DatabaseUtil.dataSource;
+  }
+
   public static async waitForConnection(): Promise<boolean> {
     if (!DatabaseUtil.initializePromise) {
       return false;
