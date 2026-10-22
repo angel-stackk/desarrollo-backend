@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { TaskService } from './tasks_service';
 import { Rights } from '../../utils/common';
 import { hasPermission } from '../../utils/auth_util';
+import { ProjectsUtil } from '../../utils/projects_util';
+import { NotificationUtil } from '../../utils/notification_util';
 
 export class TaskController {
   public async getAllHandler(req: Request, res: Response): Promise<void> {
@@ -36,6 +38,19 @@ export class TaskController {
       const { project_id, user_id, ...taskData } = req.body;
       const taskService = new TaskService();
       const newTask = await taskService.createTask(taskData, project_id, user_id);
+
+      // Recuperar los miembros del proyecto para notificar
+      const memberEmails = await ProjectsUtil.getProjectMemberEmails(project_id);
+
+      // Encolar notificaciones asíncronas para cada miembro
+      for (const email of memberEmails) {
+        await NotificationUtil.enqueueEmail(
+          email,
+          `Nueva Tarea Creada: ${newTask.name}`,
+          `<p>Hola, se ha creado la tarea <b>${newTask.name}</b> en tu proyecto.</p>`
+        );
+      }
+
       res.status(201).json({
         statusCode: 201,
         status: 'success',

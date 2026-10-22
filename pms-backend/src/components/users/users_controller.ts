@@ -4,7 +4,7 @@ import { UsersService } from './users_service';
 import { Users } from './users_entity';
 import { Rights, SERVER_CONST, encryptString, bcryptCompare } from '../../utils/common';
 import { hasPermission } from '../../utils/auth_util';
-import { sendMail } from '../../utils/email_util';
+import { NotificationUtil } from '../../utils/notification_util';
 import { CacheUtil } from '../../utils/cache_util';
 
 export class UserController {
@@ -221,7 +221,7 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
     `
   };
 
-  const emailSent = await sendMail(mailOptions.to, mailOptions.subject, mailOptions.html);
+  const emailSent = await NotificationUtil.sendEmail(mailOptions.to, mailOptions.subject, mailOptions.html);
 
   if (emailSent) {
     res.status(200).json({ statusCode: 200, status: 'success', message: 'Enlace de recuperación enviado al correo electrónico' });

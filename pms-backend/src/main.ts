@@ -6,6 +6,8 @@ import { ExpressServer } from './express_server';
 import { DatabaseUtil } from './utils/db';
 import { DDLUtil } from './utils/ddl_util';
 import { CacheUtil } from './utils/cache_util';
+import { NotificationUtil } from './utils/notification_util';
+import { QueueWorkerWithFailures } from './workers/queue_worker';
 import { UsersUtil } from './components/users/users_controller';
 
 const initFlag = process.argv.includes('--init');
@@ -47,6 +49,15 @@ if (cluster.isPrimary) {
 
   // Inicializar el cliente de almacenamiento en caché
   new CacheUtil();
+
+  // Inicializar el transporte de correo y el trabajador de la cola
+  new NotificationUtil({
+    smtp_host: process.env.MAIL_HOST,
+    smtp_port: Number(process.env.MAIL_PORT) || 587,
+    smtp_user: process.env.MAIL_USER,
+    smtp_pass: process.env.MAIL_PASS
+  });
+  new QueueWorkerWithFailures().beginProcessing();
 
   // Ejecutar precarga de caché diferida a los 10 segundos del arranque
   setTimeout(() => {
