@@ -5,6 +5,8 @@ import os from 'os';
 import { ExpressServer } from './express_server';
 import { DatabaseUtil } from './utils/db';
 import { DDLUtil } from './utils/ddl_util';
+import { CacheUtil } from './utils/cache_util';
+import { UsersUtil } from './components/users/users_controller';
 
 const initFlag = process.argv.includes('--init');
 
@@ -42,6 +44,14 @@ if (cluster.isPrimary) {
   }
 } else {
   const server = new ExpressServer();
+
+  // Inicializar el cliente de almacenamiento en caché
+  new CacheUtil();
+
+  // Ejecutar precarga de caché diferida a los 10 segundos del arranque
+  setTimeout(() => {
+    UsersUtil.putAllUsersInCache();
+  }, 10000);
 
   process.on('uncaughtException', (error: Error) => {
     console.error(`Uncaught exception in worker process ${process.pid}:`, error);

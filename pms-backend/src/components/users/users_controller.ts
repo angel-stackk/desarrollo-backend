@@ -5,6 +5,7 @@ import { Users } from './users_entity';
 import { Rights, SERVER_CONST, encryptString, bcryptCompare } from '../../utils/common';
 import { hasPermission } from '../../utils/auth_util';
 import { sendMail } from '../../utils/email_util';
+import { CacheUtil } from '../../utils/cache_util';
 
 export class UserController {
   public async getAllHandler(req: Request, res: Response): Promise<void> {
@@ -23,16 +24,32 @@ export class UserController {
     res.status(result.statusCode).json(result);
   }
 
+  /**
+   * Consulta de usuario por ID con lectura previa de caché
+   */
   public async getOneHandler(req: Request, res: Response): Promise<void> {
     if (!hasPermission(req.user?.rights, Rights.USERS.GET_DETAILS)) {
       res.status(403).json({ statusCode: 403, status: 'error', message: 'No tiene permisos para consultar el usuario' });
       return;
     }
 
+    const userId = req.params.id;
+
+    // 1. Intentar recuperar desde caché de Redis
+    const userFromCache = await CacheUtil.get('User', userId);
+    if (userFromCache) {
+      res.status(200).json({ statusCode: 200, status: 'success', data: userFromCache });
+      return;
+    }
+
+    // 2. Fallo de Caché (Cache Miss): consultar base de datos PostgreSQL
     const service = new UsersService();
-    const result = await service.findOne(req.params.id);
+    const result = await service.findOne(userId);
     if (result.statusCode === 200 && result.data) {
+      // Eliminar campo sensible antes de guardar en caché
       delete (result.data as any).password;
+      // 3. Almacenar resultado en caché para futuras peticiones
+      CacheUtil.set('User', userId, result.data);
     }
 
     res.status(result.statusCode).json(result);
@@ -67,17 +84,31 @@ export class UserController {
     }
 
     const result = await service.update(req.params.id, data);
+    if (result.statusCode === 200) {
+      // Invalidar la caché tras una actualización
+      CacheUtil.remove('User', req.params.id);
+    }
+
     res.status(result.statusCode).json(result);
   }
 
+  /**
+   * Eliminación de usuario con invalidación automática de caché
+   */
   public async deleteHandler(req: Request, res: Response): Promise<void> {
     if (!hasPermission(req.user?.rights, Rights.USERS.DELETE)) {
       res.status(403).json({ statusCode: 403, status: 'error', message: 'No tiene permisos para eliminar usuarios' });
       return;
     }
 
+    const userId = req.params.id;
     const service = new UsersService();
-    const result = await service.delete(req.params.id);
+    const result = await service.delete(userId);
+    if (result.statusCode === 200) {
+      // Invalidar y remover la entidad eliminada de Redis
+      CacheUtil.remove('User', userId);
+    }
+
     res.status(result.statusCode).json(result);
   }
 
@@ -135,6 +166,10 @@ export class UserController {
 
     const service = new UsersService();
     const result = await service.update(user.user_id, { password: await encryptString(newPassword) });
+    if (result.statusCode === 200) {
+      CacheUtil.remove('User', user.user_id);
+    }
+
     res.status(result.statusCode).json(result);
   }
 
@@ -152,6 +187,10 @@ export class UserController {
 
       const service = new UsersService();
       const result = await service.update(user.user_id, { password: await encryptString(newPassword) });
+      if (result.statusCode === 200) {
+        CacheUtil.remove('User', user.user_id);
+      }
+
       res.status(result.statusCode).json(result);
     } catch (error) {
       res.status(400).json({ statusCode: 400, status: 'error', message: 'Token inválido o expirado' });
@@ -210,5 +249,24 @@ export class UsersUtil {
       return (result.data as Users[])[0];
     }
     return undefined;
+  }
+
+  /**
+   * Precarga masiva de usuarios en la caché de Redis al arrancar el servidor
+   */
+  public static async putAllUsersInCache(): Promise<void> {
+    const userService = new UsersService();
+    const result = await userService.findAll({});
+
+    if (result.statusCode === 200 && Array.isArray(result.data)) {
+      const users = result.data;
+      users.forEach((user: any) => {
+        delete user.password; // Sanitizar contraseña
+        CacheUtil.set('User', user.user_id, user);
+      });
+      console.log('Todos los usuarios han sido cargados exitosamente en la caché');
+    } else {
+      console.error(`Error al ejecutar putAllUsersInCache: ${result.message}`);
+    }
   }
 }
